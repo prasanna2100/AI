@@ -1,0 +1,62 @@
+Lesson 11: Image Captioning
+In the classroom, the libraries are already installed for you.
+If you would like to run this code on your own machine, you can install the following:
+    !pip install transformers
+Here is some code that suppresses warning messages.
+from transformers.utils import logging
+logging.set_verbosity_error()
+​
+import warnings
+warnings.filterwarnings("ignore", message="Using the model-agnostic default `max_length`")
+Load the Model and the Processor.
+from transformers import BlipForConditionalGeneration
+model = BlipForConditionalGeneration.from_pretrained(
+    "./models/Salesforce/blip-image-captioning-base")
+Info about Salesforce/blip-image-captioning-base
+
+from transformers import AutoProcessor
+processor = AutoProcessor.from_pretrained(
+    "./models/Salesforce/blip-image-captioning-base")
+Load the image.
+from PIL import Image
+image = Image.open("./beach.jpeg")
+image
+
+Conditional Image Captioning
+text = "a photograph of"
+inputs = processor(image, text, return_tensors="pt")
+inputs
+{'pixel_values': tensor([[[[ 0.8647,  0.9230,  0.9376,  ...,  1.7552,  1.7552,  1.7552],
+          [ 0.9084,  0.9376,  0.9522,  ...,  1.7552,  1.7552,  1.7552],
+          [ 0.9376,  0.9376,  0.9668,  ...,  1.7552,  1.7552,  1.7552],
+          ...,
+          [-0.7850, -0.7850, -0.7266,  ..., -0.3178, -0.2740, -0.3616],
+          [-0.7558, -0.7558, -0.7412,  ..., -0.3178, -0.3616, -0.4346],
+          [-0.7558, -0.7704, -0.7850,  ..., -0.3616, -0.4346, -0.4784]],
+
+         [[ 1.2194,  1.2495,  1.2795,  ...,  1.8948,  1.8948,  1.8948],
+          [ 1.2344,  1.2645,  1.2945,  ...,  1.8948,  1.8948,  1.8948],
+          [ 1.2495,  1.2795,  1.3095,  ...,  1.8948,  1.8948,  1.8948],
+          ...,
+          [-0.5965, -0.5965, -0.5515,  ..., -0.4014, -0.3264, -0.4164],
+          [-0.5665, -0.5665, -0.5515,  ..., -0.3864, -0.4164, -0.4914],
+          [-0.5665, -0.5815, -0.5965,  ..., -0.4164, -0.4764, -0.5365]],
+
+         [[ 1.2927,  1.3211,  1.3496,  ...,  1.9753,  1.9753,  1.9753],
+          [ 1.3211,  1.3354,  1.3638,  ...,  1.9753,  1.9753,  1.9753],
+          [ 1.3354,  1.3496,  1.3780,  ...,  1.9753,  1.9753,  1.9753],
+          ...,
+          [-0.3568, -0.3426, -0.2857,  ..., -0.2573, -0.2146, -0.2857],
+          [-0.3142, -0.3000, -0.3000,  ..., -0.2573, -0.2857, -0.3568],
+          [-0.3142, -0.3426, -0.3568,  ..., -0.3000, -0.3568, -0.3995]]]]), 'input_ids': tensor([[ 101, 1037, 9982, 1997,  102]]), 'attention_mask': tensor([[1, 1, 1, 1, 1]])}
+out = model.generate(**inputs)
+out
+tensor([[30522,  1037,  9982,  1997,  1037,  2450,  1998,  2014,  3899,  2006,
+          1996,  3509,   102]])
+print(processor.decode(out[0], skip_special_tokens=True))
+a photograph of a woman and her dog on the beach
+Unconditional Image Captioning
+inputs = processor(image,return_tensors="pt")
+out = model.generate(**inputs)
+print(processor.decode(out[0], skip_special_tokens=True))
+a woman sitting on the beach with her dog
